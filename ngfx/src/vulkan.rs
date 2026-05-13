@@ -1,9 +1,14 @@
-//! Vulkan-side entry points (frame-boundary delimiters).
+//! Vulkan backend: frame-boundary delimiters plus activity submodules.
 
 use ash::vk;
 use ash::vk::Handle;
 
 use crate::{Result, check, struct_version, sys};
+
+#[cfg(feature = "gpu-trace")]
+pub mod gpu_trace;
+#[cfg(feature = "graphics-capture")]
+pub mod graphics_capture;
 
 /// Signal an NGFX frame boundary on `queue`.
 ///

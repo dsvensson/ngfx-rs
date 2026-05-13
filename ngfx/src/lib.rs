@@ -12,10 +12,6 @@ pub use ngfx_sys as sys;
 #[cfg(any(feature = "gpu-trace", feature = "graphics-capture"))]
 use std::path::Path;
 
-#[cfg(feature = "gpu-trace")]
-pub mod gpu_trace;
-#[cfg(feature = "graphics-capture")]
-pub mod graphics_capture;
 #[cfg(feature = "vulkan")]
 pub mod vulkan;
 
@@ -24,11 +20,7 @@ pub use sys::NGFX_Result as RawResult;
 
 /// SDK encodes struct versions as `sizeof(T) | (version << 16)` via the
 /// `NGFX_MAKE_STRUCT_VERSION` macro, which bindgen can't translate.
-#[cfg(any(
-    feature = "vulkan",
-    feature = "gpu-trace",
-    feature = "graphics-capture"
-))]
+#[cfg(feature = "vulkan")]
 #[inline]
 pub(crate) const fn struct_version<T>(version: u32) -> u32 {
     (core::mem::size_of::<T>() as u32) | (version << 16)

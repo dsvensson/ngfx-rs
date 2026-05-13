@@ -14,7 +14,7 @@ use std::path::PathBuf;
 use std::{error::Error, slice};
 
 use ash::vk;
-use ngfx::gpu_trace;
+use ngfx::vulkan::{self, gpu_trace};
 
 const SHADER_SPV: &[u8] = include_bytes!("hello_compute_trace.spv");
 const NUM_ELEMENTS: u32 = 256;
@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Nsight Graphics install: {}", install_path.display());
 
     let mut settings = gpu_trace::Settings::in_app().max_duration_ms(30_000);
-    let session = gpu_trace::Session::inject_vulkan(&install_path, &mut settings)?;
+    let session = gpu_trace::Session::inject(&install_path, &mut settings)?;
 
     unsafe { run_compute(&session) }
 }
@@ -66,7 +66,7 @@ unsafe fn run_compute(session: &gpu_trace::Session) -> Result<(), Box<dyn Error>
         )?;
         let queue = device.get_device_queue(queue_family, 0);
 
-        session.initialize_vulkan()?;
+        session.initialize()?;
 
         let buffer_size = (NUM_ELEMENTS as u64) * 4;
         let buffer = device.create_buffer(
@@ -179,21 +179,21 @@ unsafe fn run_compute(session: &gpu_trace::Session) -> Result<(), Box<dyn Error>
         device.end_command_buffer(cb)?;
 
         println!("Ready for NVIDIA Nsight Graphics attach (Connect → Attach to Process)...");
-        session.activate_vulkan(queue)?;
+        session.activate(queue)?;
         println!("Attached — running compute workload.");
 
         // Compute-only apps have no swapchain, so we bracket the dispatch with
         // synthetic frame boundaries for the SDK.
-        session.start_vulkan()?;
-        ngfx::vulkan::frame_boundary(queue)?;
+        session.start()?;
+        vulkan::frame_boundary(queue)?;
         device.queue_submit(
             queue,
             &[vk::SubmitInfo::default().command_buffers(&[cb])],
             vk::Fence::null(),
         )?;
         device.queue_wait_idle(queue)?;
-        ngfx::vulkan::frame_boundary(queue)?;
-        session.stop_vulkan(queue, gpu_trace::StopFlag::ImmediateCollection)?;
+        vulkan::frame_boundary(queue)?;
+        session.stop(queue, gpu_trace::StopFlag::ImmediateCollection)?;
         // Post-stop idle is Active (Activate makes Active the terminal state).
         session.wait_for_status(gpu_trace::Status::Active, 10_000)?;
 

@@ -1,12 +1,12 @@
 //! Graphics Capture activity: serialize a frame or sequence of frames to a
 //! `.nsight-gfxcap` bundle for offline replay/analysis in Nsight Graphics.
 //!
-//! Lifecycle (Vulkan):
-//!   1. [`Session::inject_vulkan`] — before `VkInstance` creation.
-//!   2. [`Session::initialize_vulkan`] — after `VkDevice` is ready.
-//!   3. [`Session::request_vulkan`] — schedule a capture for a frame/range.
+//! Lifecycle:
+//!   1. [`Session::inject`] — before `VkInstance` creation.
+//!   2. [`Session::initialize`] — after `VkDevice` is ready.
+//!   3. [`Session::request`] — schedule a capture for a frame/range.
 //!   4. The capture is triggered automatically at the next matching delimiter,
-//!      or manually via [`Session::start_vulkan`] / [`Session::stop_vulkan`].
+//!      or manually via [`Session::start`] / [`Session::stop`].
 
 use std::path::Path;
 
@@ -71,8 +71,7 @@ pub struct Session {
 impl Session {
     /// Inject Graphics Capture into the current process. `installation_path`
     /// is the Nsight Graphics root install dir.
-    #[cfg(feature = "vulkan")]
-    pub fn inject_vulkan(installation_path: &Path, settings: &mut Settings) -> Result<Self> {
+    pub fn inject(installation_path: &Path, settings: &mut Settings) -> Result<Self> {
         crate::set_library_load_default();
         let path = encode_path(installation_path);
         let mut params = sys::NGFX_GraphicsCapture_Inject_Vulkan_Params_V1 {
@@ -84,20 +83,18 @@ impl Session {
         Ok(Self { _private: () })
     }
 
-    #[cfg(feature = "vulkan")]
-    pub fn initialize_vulkan(&self) -> Result<()> {
+    pub fn initialize(&self) -> Result<()> {
         let mut params = sys::NGFX_GraphicsCapture_InitializeActivity_Vulkan_Params_V1 {
-            version: struct_version::<sys::NGFX_GraphicsCapture_InitializeActivity_Vulkan_Params_V1>(
-                1,
-            ),
+            version: struct_version::<
+                sys::NGFX_GraphicsCapture_InitializeActivity_Vulkan_Params_V1,
+            >(1),
         };
         check(unsafe { sys::ngfx_sys_GraphicsCapture_InitializeActivity_Vulkan(&mut params) })
     }
 
     /// Schedule a capture of `frames_to_capture` frames (1..=60), starting
     /// `frames_before_start` frames from now, delimited by `delimiter`.
-    #[cfg(feature = "vulkan")]
-    pub fn request_vulkan(
+    pub fn request(
         &self,
         delimiter: Delimiter,
         frames_before_start: u32,
@@ -113,9 +110,8 @@ impl Session {
     }
 
     /// Manually start a capture (use when not relying on a scheduled
-    /// `request_vulkan` trigger).
-    #[cfg(feature = "vulkan")]
-    pub fn start_vulkan(&self) -> Result<()> {
+    /// [`Self::request`] trigger).
+    pub fn start(&self) -> Result<()> {
         let mut params = sys::NGFX_GraphicsCapture_StartCapture_Vulkan_Params_V1 {
             version: struct_version::<sys::NGFX_GraphicsCapture_StartCapture_Vulkan_Params_V1>(1),
         };
@@ -123,8 +119,7 @@ impl Session {
     }
 
     /// Manually stop a capture.
-    #[cfg(feature = "vulkan")]
-    pub fn stop_vulkan(&self) -> Result<()> {
+    pub fn stop(&self) -> Result<()> {
         let mut params = sys::NGFX_GraphicsCapture_StopCapture_Vulkan_Params_V1 {
             version: struct_version::<sys::NGFX_GraphicsCapture_StopCapture_Vulkan_Params_V1>(1),
         };

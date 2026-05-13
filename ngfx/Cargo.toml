@@ -12,9 +12,11 @@ default = ["vulkan", "graphics-capture", "gpu-trace"]
 
 vulkan = ["ngfx-sys/vulkan"]
 
-graphics-capture = ["ngfx-sys/graphics-capture"]
-gpu-trace = ["ngfx-sys/gpu-trace"]
-system-profiling = ["ngfx-sys/system-profiling"]
+# Activity features currently only have Vulkan backends in the high-level
+# crate, so they imply `vulkan`.
+graphics-capture = ["vulkan", "ngfx-sys/graphics-capture"]
+gpu-trace = ["vulkan", "ngfx-sys/gpu-trace"]
+system-profiling = ["vulkan", "ngfx-sys/system-profiling"]
 
 [dependencies]
 ngfx-sys = { path = "../ngfx-sys", default-features = false }

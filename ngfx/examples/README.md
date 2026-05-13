@@ -64,18 +64,18 @@ and the trace ends early or shows gaps. A safe starting point for long traces is
 
 ```
 1. Resolve install path (NGFX_INSTALLATION_PATH or argv[1])
-2. gpu_trace::Session::inject_vulkan(install, settings)   // BEFORE VkInstance
+2. gpu_trace::Session::inject(install, settings)   // BEFORE VkInstance
 3. ash Entry / Instance / PhysicalDevice / Device / Queue
-4. session.initialize_vulkan()
+4. session.initialize()
 5. Build storage buffer, descriptor set, shader, compute pipeline, command buffer
 6. print "Ready for NVIDIA Nsight Graphics attach"
-7. session.activate_vulkan(queue)   // blocks until Nsight host attaches
-8. session.start_vulkan()
-9. ngfx::vulkan::frame_boundary(queue)
+7. session.activate(queue)   // blocks until Nsight host attaches
+8. session.start()
+9. vulkan::frame_boundary(queue)
 10. submit + queue_wait_idle
-11. ngfx::vulkan::frame_boundary(queue)
-12. session.stop_vulkan(queue, StopFlag::ImmediateCollection)
-13. session.wait_for_status(Status::Inactive, 10_000)
+11. vulkan::frame_boundary(queue)
+12. session.stop(queue, StopFlag::ImmediateCollection)
+13. session.wait_for_status(Status::Active, 10_000)
 14. Read back, print first/last 8 outputs, tear down Vulkan
 ```
 

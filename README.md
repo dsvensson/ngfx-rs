@@ -8,11 +8,11 @@ Profiling activities from inside the process.
 A minimal GPU Trace around a Vulkan workload:
 
 ```rust
-use ngfx::gpu_trace;
+use ngfx::vulkan::{self, gpu_trace};
 
 // 1. Inject GPU Trace BEFORE creating the VkInstance.
 let mut settings = gpu_trace::Settings::in_app().max_duration_ms(30_000);
-let session = gpu_trace::Session::inject_vulkan(&install_path, &mut settings)?;
+let session = gpu_trace::Session::inject(&install_path, &mut settings)?;
 
 // 2. Standard ash setup (entry → instance → device → queue).
 let entry    = ash::Entry::load()?;
@@ -21,17 +21,17 @@ let device   = instance.create_device(pdev, &info, None)?;
 let queue    = device.get_device_queue(family, 0);
 
 // 3. Bring the activity online.
-session.initialize_vulkan()?;
-session.activate_vulkan(queue)?;   // blocks until Nsight host attaches
+session.initialize()?;
+session.activate(queue)?;   // blocks until Nsight host attaches
 
 // 4. Trace around the workload. Compute-only apps emit synthetic frame
 //    boundaries since there's no swapchain.
-session.start_vulkan()?;
-ngfx::vulkan::frame_boundary(queue)?;
+session.start()?;
+vulkan::frame_boundary(queue)?;
 device.queue_submit(queue, &submits, vk::Fence::null())?;
 device.queue_wait_idle(queue)?;
-ngfx::vulkan::frame_boundary(queue)?;
-session.stop_vulkan(queue, gpu_trace::StopFlag::ImmediateCollection)?;
+vulkan::frame_boundary(queue)?;
+session.stop(queue, gpu_trace::StopFlag::ImmediateCollection)?;
 session.wait_for_status(gpu_trace::Status::Active, 10_000)?;
 ```
 

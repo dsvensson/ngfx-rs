@@ -1,6 +1,6 @@
 //! GPU Trace activity: in-process trace capture lifecycle.
 //!
-//! Lifecycle (Vulkan):
+//! Lifecycle:
 //!   1. [`Session::inject`] — before `VkInstance` creation.
 //!   2. [`Session::initialize`] — after `VkDevice` is ready.
 //!   3. [`Session::activate`] with the queue that owns trace resources.
@@ -91,8 +91,7 @@ pub struct Session {
 impl Session {
     /// `installation_path` is the Nsight Graphics root install dir (the
     /// directory containing `target/windows-desktop-nomad-x64/`).
-    #[cfg(feature = "vulkan")]
-    pub fn inject_vulkan(installation_path: &Path, settings: &mut Settings) -> Result<Self> {
+    pub fn inject(installation_path: &Path, settings: &mut Settings) -> Result<Self> {
         crate::set_library_load_default();
         let path = encode_path(installation_path);
         let mut params = sys::NGFX_GPUTrace_Inject_Vulkan_Params_V1 {
@@ -104,8 +103,7 @@ impl Session {
         Ok(Self { _private: () })
     }
 
-    #[cfg(feature = "vulkan")]
-    pub fn initialize_vulkan(&self) -> Result<()> {
+    pub fn initialize(&self) -> Result<()> {
         let mut params = sys::NGFX_GPUTrace_InitializeActivity_Vulkan_Params_V1 {
             version: struct_version::<sys::NGFX_GPUTrace_InitializeActivity_Vulkan_Params_V1>(1),
         };
@@ -113,8 +111,7 @@ impl Session {
     }
 
     /// Allocate trace resources on `queue`. Blocking; needs the host.
-    #[cfg(feature = "vulkan")]
-    pub fn activate_vulkan(&self, queue: vk::Queue) -> Result<()> {
+    pub fn activate(&self, queue: vk::Queue) -> Result<()> {
         let mut params = sys::NGFX_GPUTrace_ActivateTrace_Vulkan_Params_V1 {
             version: struct_version::<sys::NGFX_GPUTrace_ActivateTrace_Vulkan_Params_V1>(1),
             queue: queue.as_raw() as *mut _,
@@ -122,8 +119,7 @@ impl Session {
         check(unsafe { sys::ngfx_sys_GPUTrace_ActivateTrace_Vulkan(&mut params) })
     }
 
-    #[cfg(feature = "vulkan")]
-    pub fn start_vulkan(&self) -> Result<()> {
+    pub fn start(&self) -> Result<()> {
         let mut params = sys::NGFX_GPUTrace_StartTrace_Vulkan_Params_V1 {
             version: struct_version::<sys::NGFX_GPUTrace_StartTrace_Vulkan_Params_V1>(1),
         };
@@ -132,8 +128,7 @@ impl Session {
 
     /// Stop the trace. `ImmediateCollection` drains synchronously — caller
     /// must guarantee no further work is scheduled on `queue`.
-    #[cfg(feature = "vulkan")]
-    pub fn stop_vulkan(&self, queue: vk::Queue, flags: StopFlag) -> Result<()> {
+    pub fn stop(&self, queue: vk::Queue, flags: StopFlag) -> Result<()> {
         let mut params = sys::NGFX_GPUTrace_StopTrace_Vulkan_Params_V1 {
             version: struct_version::<sys::NGFX_GPUTrace_StopTrace_Vulkan_Params_V1>(1),
             flags,
