@@ -1,0 +1,13 @@
+[workspace]
+resolver = "3"
+members = ["ngfx-sys", "ngfx"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+repository = "https://github.com/dsvensson/ngfx-rs"
+
+[workspace.dependencies]
+bindgen = "0.71"
+cc = "1.2"

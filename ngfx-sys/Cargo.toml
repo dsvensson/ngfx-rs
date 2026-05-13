@@ -1,0 +1,32 @@
+[package]
+name = "ngfx-sys"
+version = "0.9.0+sdk0.9.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Raw FFI bindings for the NVIDIA Nsight Graphics SDK"
+links = "ngfx_sys_shim"
+build = "build.rs"
+
+[features]
+default = ["vulkan", "graphics-capture", "gpu-trace"]
+
+# Graphics API features
+d3d12 = []
+vulkan = []
+opengl = []
+cuda = []
+cudart = []
+
+# Activity features
+graphics-capture = []
+gpu-trace = []
+system-profiling = []
+
+# Misc
+verbose-logging = []
+
+[build-dependencies]
+bindgen = { workspace = true }
+cc = { workspace = true }
